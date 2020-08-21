@@ -1,6 +1,7 @@
 const express = require("express");
 const morgan = require("morgan");
 const postBank = require("./postBank");
+const timeAgo = require('node-time-ago');
 
 const app = express();
 
@@ -31,7 +32,7 @@ app.get("/", (req, res) => {
            <small>(by ${post.name})</small>
          </p>
          <small class="news-info">
-           ${post.upvotes} upvotes | ${post.date}
+           ${post.upvotes} upvotes | ${timeAgo(post.date)}
          </small>
        </div>`
      ).join('')}
@@ -47,7 +48,13 @@ app.get('/posts/:id', async (req, res, next) => {
   const id = req.params.id;
   const post = postBank.find(id);
 
-    //prepare html to send as output
+  console.log(post)
+
+  if(post.id === undefined) {
+    // res.send("page not found")
+    next()
+  } else {
+        //prepare html to send as output
   const html = 
   `<!DOCTYPE html>
  <html>
@@ -65,7 +72,7 @@ app.get('/posts/:id', async (req, res, next) => {
            <small>(by ${post.name})</small>
          </p>
          <small class="news-info">
-          ${post.upvotes} upvotes | ${post.date}
+          ${post.upvotes} upvotes | ${timeAgo(post.date)}
          </small>
          <p>${post.content}</p>
        </div>
@@ -74,17 +81,23 @@ app.get('/posts/:id', async (req, res, next) => {
 </html>`
 
   res.send(html)
+  }
   
 })
 
-app.use('/posts/:id', function (err, req, res, next) {
-  // console.log({err: err.message})
-  // console.log(err)
-  if(!res.params.id){
-    console.log({err: err.message})
-    console.log(err)
-  }
+app.use(function (req, res, next) {
+  res.status(404).send("page not ound")
 })
+
+// app.use(function (err, req, res, next) {
+//   // console.log({err: err.message})
+//   // console.log(err)
+//   if(!req.params.id) {
+//     console.log({err: err.message})
+//     console.log(err)
+//   }
+
+// })
 
 const PORT = 1337;
 
